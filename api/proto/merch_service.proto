@@ -1,0 +1,137 @@
+syntax = "proto3";
+
+package merch;
+
+option go_package = "api/pb;pb";
+
+import "google/api/annotations.proto";
+import "protoc-gen-openapiv2/options/annotations.proto";
+
+option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_swagger) = {
+  info: {
+    title: "Merch Store";
+    version: "1.0";
+  };
+  host: "localhost:8090";
+  security_definitions: {
+    security: {
+      key: "BearerAuth";
+      value: {
+        type: TYPE_API_KEY;
+        in: IN_HEADER;
+        name: "Authorization";
+        description: "JWT token";
+      }
+    }
+  };
+};
+
+
+message AuthRequest {
+  string username = 1;
+  string password = 2;
+}
+
+message AuthResponse {
+  string token = 1;
+}
+
+message PurchaseRequest {
+  string merch_name = 2;
+}
+
+message PurchaseResponse {
+  bool success = 1;
+  string message = 2;
+}
+
+message TransferRequest {
+  int32 to_user = 2;
+  int32 amount = 3;
+}
+
+message TransferResponse {
+  bool success = 1;
+  string message = 2;
+}
+
+message GetInfoRequest {
+}
+
+message Purchase {
+  int32 id = 1;
+  string merch_name = 2;
+  int32 price = 3;
+  string purchase_date = 4;
+}
+
+message Transaction {
+  int32 id = 1;
+  int32 sender_id = 2;
+  int32 receiver_id = 3;
+  int32 amount = 4;
+  string created_at = 5;
+}
+
+message UserInfo {
+  int32 user_id = 1;
+  string username = 2;
+  int32 balance = 3;
+  repeated Purchase purchases = 4;
+  repeated Transaction transactions = 5;
+}
+
+message GetInfoResponse {
+  UserInfo info = 1;
+}
+
+service MerchService {
+  rpc Authenticate(AuthRequest) returns (AuthResponse) {
+    option (google.api.http) = {
+      post: "/api/auth"
+      body: "*"
+    };
+  }
+  rpc PurchaseMerch(PurchaseRequest) returns (PurchaseResponse) {
+    option (google.api.http) = {
+      post: "/api/merch/buy/{merch_name}"
+      body: "*"
+    };
+    option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_operation) = {
+      security: {
+        security_requirement: {
+          key: "BearerAuth";
+          value: {};
+        }
+      }
+    };
+  }
+  rpc TransferCoins(TransferRequest) returns (TransferResponse) {
+    option (google.api.http) = {
+      post: "/api/send-coin"
+      body: "*"
+    };
+    option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_operation) = {
+      security: {
+        security_requirement: {
+          key: "BearerAuth";
+          value: {};
+        }
+      }
+    };
+  }
+  rpc GetInfo(GetInfoRequest) returns (GetInfoResponse) {
+    option (google.api.http) = {
+      get: "/api/info"
+    };
+    option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_operation) = {
+      security: {
+        security_requirement: {
+          key: "BearerAuth";
+          value: {};
+        }
+      }
+    };
+  }
+}
+
